@@ -1,4 +1,10 @@
 import {
+  CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons";
+import {
   closestCenter,
   DndContext,
   DragEndEvent,
@@ -13,8 +19,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, Tag, Typography } from "antd";
-import { useState } from "react";
-import { CalendarOutlined } from "@ant-design/icons";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const { Title, Text } = Typography;
 
@@ -98,30 +104,76 @@ const getPriorityColor = (priority: Task["priority"]) => {
   }
 };
 
+// Card Animation Variants
+const cardVariants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  exit: { opacity: 0, y: 10, transition: { duration: 0.2 } },
+};
+
 const SortableTaskCard = ({ task }: { task: Task }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: task.id });
-  const style = { transform: CSS.Transform.toString(transform), transition };
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.7 : 1, // Reduced opacity while dragging
+  };
   const priorityColor = getPriorityColor(task.priority);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Todo":
+        return <InfoCircleOutlined />;
+      case "In Progress":
+        return <ClockCircleOutlined />;
+      case "Done":
+        return <CheckCircleOutlined />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Card
+    <motion.div
       ref={setNodeRef}
-      style={{ ...style, borderLeft: `4px solid ${priorityColor}` }}
+      style={style}
       {...attributes}
       {...listeners}
-      className="!mb-3 bg-white shadow-sm border border-gray-300 hover:shadow-md transition-shadow duration-200 rounded-md"
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="!mb-3 bg-white shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 rounded-md" // Added hover effect
     >
-      <Title level={5}>{task.title}</Title>
-      <Text type="secondary" className="block mb-2">
-        {task.description}
-      </Text>
-      <div className="flex justify-between text-sm items-center">
-        <Tag color={priorityColor}>{task.priority}</Tag>
-        <Tag icon={<CalendarOutlined />} className="flex items-center">
-          {task.dueDate}
-        </Tag>
-      </div>
-    </Card>
+      <Card className="!border-0 !shadow-none">
+        <Title level={5} className="mb-1">
+          {task.title}
+        </Title>
+        <Text type="secondary" className="block mb-2 text-sm">
+          {task.description}
+        </Text>
+        <div className="flex justify-between text-sm items-center">
+          <Tag color={priorityColor} className="mr-2">
+            {task.priority}
+          </Tag>
+          <div className="flex items-center">
+            <Tag icon={getStatusIcon(task.status)} className="mr-2">
+              {task.status}
+            </Tag>
+            <Tag icon={<CalendarOutlined />} className="flex items-center">
+              {task.dueDate}
+            </Tag>
+          </div>
+        </div>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -133,22 +185,52 @@ const DroppableColumn = ({
   children: React.ReactNode;
 }) => {
   const { isOver, setNodeRef } = useDroppable({ id: status });
-  const backgroundColor = isOver ? "bg-blue-50" : "bg-gray-100";
+  const [highlighted, setHighlighted] = useState(false);
+
+  // Use useEffect to apply the highlight class
+  useEffect(() => {
+    if (isOver) {
+      setHighlighted(true);
+      const timer = setTimeout(() => setHighlighted(false), 300); // Short duration
+      return () => clearTimeout(timer);
+    }
+  }, [isOver]);
+
+  const getStatusTitle = (status: string) => {
+    switch (status) {
+      case "Todo":
+        return "To Do";
+      case "In Progress":
+        return "In Progress";
+      case "Done":
+        return "Completed";
+      default:
+        return status;
+    }
+  };
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       id={status}
-      className={`rounded-xl p-4 shadow-md min-h-[300px] pb-[300px] border border-gray-200 ${backgroundColor} transition-colors duration-200`}
+      className={`rounded-xl p-4 shadow-md min-h-[300px] border border-gray-200 transition-colors duration-200 ${
+        highlighted ? "bg-blue-100 border-blue-300" : "bg-gray-100"
+      }`}
+      animate={{
+        backgroundColor: isOver
+          ? "rgba(191, 219, 254, 0.3)" // Lighter blue highlight
+          : "rgba(247, 250, 252, 1)", // Tailwind's gray-100 as rgba
+        borderColor: isOver ? "#93c5fd" : "#e5e7eb", // Tailwind's blue-300 and gray-200
+      }}
     >
       <Title
         level={4}
-        className="mb-4 text-gray-700 font-semibold text-lg border-b border-gray-300 pb-2"
+        className="mb-4 text-gray-800 font-semibold text-lg border-b border-gray-300 pb-2"
       >
-        {status}
+        {getStatusTitle(status)}
       </Title>
-      {children}
-    </div>
+      <AnimatePresence>{children}</AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -215,7 +297,7 @@ export default function BoardView() {
   const activeTask = tasks.find((t) => t.id === activeTaskId) || null;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-100 min-h-screen">
       <Title level={3} className="text-gray-800 mb-6">
         Task Board
       </Title>
@@ -224,7 +306,7 @@ export default function BoardView() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {statuses.map((status) => {
             const filteredTasks = tasks
               .filter((t) => t.status === status)
@@ -247,7 +329,7 @@ export default function BoardView() {
         </div>
         <DragOverlay>
           {activeTask && (
-            <div className="opacity-75">
+            <div className="opacity-80 shadow-lg">
               <SortableTaskCard task={activeTask} />
             </div>
           )}
