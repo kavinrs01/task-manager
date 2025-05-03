@@ -297,7 +297,7 @@ export default function BoardView() {
   const activeTask = tasks.find((t) => t.id === activeTaskId) || null;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-100 min-h-screen w-full">
       <Title level={3} className="text-gray-800 mb-6">
         Task Board
       </Title>
