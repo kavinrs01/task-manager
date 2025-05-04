@@ -20,7 +20,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Card, Tag, Typography } from "antd";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const { Title, Text } = Typography;
 
@@ -104,7 +104,6 @@ const getPriorityColor = (priority: Task["priority"]) => {
   }
 };
 
-// Card Animation Variants
 const cardVariants = {
   hidden: { opacity: 0, y: -10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
@@ -118,12 +117,14 @@ const SortableTaskCard = ({ task }: { task: Task }) => {
     setNodeRef,
     transform,
     transition,
+    isSorting,
     isDragging,
   } = useSortable({ id: task.id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.7 : 1, // Reduced opacity while dragging
+    border: isSorting && isDragging ? "1px dashed #000" : "none",
+    backgroundColor: isSorting && isDragging ? "#f0f0f0" : "white",
   };
   const priorityColor = getPriorityColor(task.priority);
 
@@ -152,7 +153,7 @@ const SortableTaskCard = ({ task }: { task: Task }) => {
       exit="exit"
       className="!mb-3 bg-white shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 rounded-md" // Added hover effect
     >
-      <Card className="!border-0 !shadow-none">
+      <Card className="!border-0 !shadow-none ">
         <Title level={5} className="mb-1">
           {task.title}
         </Title>
@@ -187,11 +188,10 @@ const DroppableColumn = ({
   const { isOver, setNodeRef } = useDroppable({ id: status });
   const [highlighted, setHighlighted] = useState(false);
 
-  // Use useEffect to apply the highlight class
   useEffect(() => {
     if (isOver) {
       setHighlighted(true);
-      const timer = setTimeout(() => setHighlighted(false), 300); // Short duration
+      const timer = setTimeout(() => setHighlighted(false), 300);
       return () => clearTimeout(timer);
     }
   }, [isOver]);
@@ -213,7 +213,7 @@ const DroppableColumn = ({
     <motion.div
       ref={setNodeRef}
       id={status}
-      className={`rounded-xl p-4 shadow-md min-h-[300px] border border-gray-200 transition-colors duration-200 ${
+      className={`rounded-xl p-4 pb-[500px] shadow-md min-h-[300px] border border-gray-200 transition-colors duration-200 ${
         highlighted ? "bg-blue-100 border-blue-300" : "bg-gray-100"
       }`}
       animate={{

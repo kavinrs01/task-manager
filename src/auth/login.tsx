@@ -1,6 +1,8 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import React, { useState } from "react";
+import api from "../axios";
+import { currentUserActions, useAppDispatch } from "../store";
 
 const { Title, Text, Link } = Typography;
 
@@ -11,14 +13,22 @@ interface LoginFormValues {
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
-
+  const dispatch = useAppDispatch();
   const onFinish = async (values: LoginFormValues) => {
     setLoading(true);
     try {
       if (values.email && values.password) {
-        // await signInWithEmailAndPassword(auth, values.email, values.password);
+        const response = await api.post("/auth/login", {
+          email: values.email,
+          password: values.password,
+        });
+        console.log("Login response:", response.data);
+
+        localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+        const user = response.data?.user;
+        dispatch(currentUserActions.updateCurrentUser(user));
         message.success("Login successful!");
-        // Redirect or update state upon successful login
       } else {
         message.error("Please enter both email and password.");
       }

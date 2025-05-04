@@ -1,14 +1,19 @@
-import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AppLayout } from "../app-layout/app-layout";
 import { AppLoader } from "../app-loader/app-loader";
 import Login from "../auth/login";
+import api from "../axios";
 import BoardView from "../board";
 import { currentUserActions, useAppDispatch, useAppSelector } from "../store";
 import { User } from "../utils/types";
 import { PrivateRoute } from "./private-route";
 import { PublicRoute } from "./public-route";
+import {
+  getAccessToken,
+  removeAccessToken,
+  removeRefreshToken,
+} from "../auth/tokenService";
 
 const AppRouter: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -20,45 +25,22 @@ const AppRouter: React.FC = () => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
+      const accessToken = getAccessToken();
 
-      if (!accessToken || !refreshToken) {
+      if (!accessToken) {
         setIsInitialized(true);
         return;
       }
 
       try {
-        const response = await axios.get("/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
+        const response = await api.get("/auth/me");
         const user = response.data;
         dispatch(currentUserActions.updateCurrentUser(user));
       } catch (err) {
-        try {
-          const refreshResponse = await axios.post("/api/auth/refresh", {
-            refreshToken,
-          });
-
-          const { accessToken: newAccessToken } = refreshResponse.data;
-          localStorage.setItem("accessToken", newAccessToken);
-
-          const meResponse = await axios.get("/api/auth/me", {
-            headers: {
-              Authorization: `Bearer ${newAccessToken}`,
-            },
-          });
-
-          const user = meResponse.data;
-          dispatch(currentUserActions.updateCurrentUser(user));
-        } catch (refreshError) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          navigate("/login");
-        }
+        removeAccessToken();
+        removeRefreshToken();
+        dispatch(currentUserActions.removeCurrentUser());
+        navigate("/login");
       } finally {
         setIsInitialized(true);
       }
@@ -94,7 +76,7 @@ const AppRouter: React.FC = () => {
 
       <Route
         path="/"
-        element={<Navigate to={isInitialized ? "/app/home" : "/login"} />}
+        element={<Navigate to={isAuthenticated ? "/app/home" : "/login"} />}
       />
     </Routes>
   );
