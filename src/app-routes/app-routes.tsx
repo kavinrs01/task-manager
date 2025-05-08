@@ -3,17 +3,18 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AppLayout } from "../app-layout/app-layout";
 import { AppLoader } from "../app-loader/app-loader";
 import Login from "../auth/login";
-import api from "../axios";
-import BoardView from "../board";
-import { currentUserActions, useAppDispatch, useAppSelector } from "../store";
-import { User } from "../utils/types";
-import { PrivateRoute } from "./private-route";
-import { PublicRoute } from "./public-route";
 import {
   getAccessToken,
   removeAccessToken,
   removeRefreshToken,
 } from "../auth/tokenService";
+import api from "../axios";
+import { currentUserActions, useAppDispatch, useAppSelector } from "../store";
+import { TaskBoardView } from "../task";
+import { TaskProvider } from "../task/task-context";
+import { User } from "../utils/types";
+import { PrivateRoute } from "./private-route";
+import { PublicRoute } from "./public-route";
 
 const AppRouter: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -62,7 +63,15 @@ const AppRouter: React.FC = () => {
         }
       >
         <Route index element={<Navigate to="/app/home" replace />} />
-        <Route path="/app/home" element={<BoardView />} />
+        <Route
+          path="/app/home"
+          element={
+            <TaskProvider>
+              {" "}
+              <TaskBoardView />
+            </TaskProvider>
+          }
+        />
       </Route>
 
       <Route

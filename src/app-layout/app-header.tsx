@@ -17,7 +17,7 @@ const AppHeader: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-row items-center gap-3 w-full px-4 justify-between py-2">
+    <div className="flex flex-row items-center gap-3 w-full px-1 justify-between py-2">
       <div className="flex flex-row items-center">
         <img src="/logo.png" className="w-[100px]"></img>
       </div>
