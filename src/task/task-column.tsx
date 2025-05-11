@@ -4,53 +4,46 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useRequest } from "ahooks";
-import { Typography } from "antd";
 import { capitalize, isNil } from "lodash";
 import { DateTime } from "luxon";
 import { AnimatePresence, motion } from "motion/react";
 import React, { useEffect, useState } from "react";
-import api from "../axios";
 import { getStatusInfo } from "../utils/components";
-import { FilterInput, Task, TaskStatus } from "../utils/types";
+import {
+  Task,
+  TaskArgsFormattedDto,
+  TaskFilterDto,
+  TaskStatus,
+} from "../utils/types";
 import { TaskLoadingCard } from "./loading-card";
+import { listTasksQuery } from "./query";
 import { SortableTaskCard } from "./task-card";
 import { useTasks } from "./task-context";
-const { Title } = Typography;
 const DroppableColumn: React.FC<{
   status: TaskStatus;
   tasks: Task[];
-  filter: FilterInput;
+  filter: TaskFilterDto;
 }> = React.memo(({ status, tasks, filter }) => {
   const { isOver, setNodeRef } = useDroppable({ id: status });
-  const { data, loading, runAsync } = useRequest(
-    async (params: Record<string, any>) => {
-      const response = await api.get<Task[]>("/tasks/list", {
-        params,
-      });
-      return response.data;
-    },
-    {
-      manual: true,
-    }
-  );
+  const { data, loading, runAsync } = useRequest(listTasksQuery, {
+    manual: true,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
-      const parsedFilter: Record<string, string | null> = {};
+      const parsedFilter: TaskArgsFormattedDto = {};
       if (filter?.priority) {
         parsedFilter["filter.priority"] = filter.priority;
       }
 
       if (filter?.dueDate) {
         if (filter.dueDate.gte && !isNil(filter.dueDate.gte)) {
-          parsedFilter["filter.dueDate.gte"] = DateTime.fromISO(
-            filter.dueDate.gte
-          ).toISO();
+          parsedFilter["filter.dueDate.gte"] =
+            DateTime.fromISO(filter.dueDate.gte).toISO() || undefined;
         }
         if (filter.dueDate.lte && !isNil(filter.dueDate.lte)) {
-          parsedFilter["filter.dueDate.lte"] = DateTime.fromISO(
-            filter.dueDate.lte
-          ).toISO();
+          parsedFilter["filter.dueDate.lte"] =
+            DateTime.fromISO(filter.dueDate.lte).toISO() || undefined;
         }
       }
 

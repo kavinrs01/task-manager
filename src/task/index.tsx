@@ -15,15 +15,15 @@ import { Spin, Typography } from "antd";
 import { findIndex, groupBy, last, orderBy, uniqBy } from "lodash";
 import { DateTime } from "luxon";
 import React, { useCallback, useMemo, useState } from "react";
-import { FilterInput, Task, TaskStatus } from "../utils/types";
+import { Task, TaskFilterDto, TaskStatus } from "../utils/types";
 import { updateSortOderQuery } from "./query";
+import "./styles.less";
 import { SortableTaskCard } from "./task-card";
 import { DroppableColumn } from "./task-column";
 import { useTasks } from "./task-context";
 import { TaskModal } from "./task-expand-view";
 import TaskFilter from "./task-filter";
 import { CreateTaskModal } from "./task-form-modal";
-import "./styles.less";
 
 const { Title } = Typography;
 
@@ -104,7 +104,6 @@ const TaskBoardView: React.FC = React.memo(() => {
       const prevTask = overIndex > 0 ? orderedTasks[overIndex - 1] : null;
 
       let newSortOrder: number;
-      console.log(isDroppingOnColumn, "isDroppingOnColumn");
       if (prevTask && overTask) {
         // Place between prev and over
         newSortOrder = (prevTask.sortOrder + overTask.sortOrder) / 2;
@@ -155,7 +154,7 @@ const TaskBoardView: React.FC = React.memo(() => {
     [activeTaskId, tasks]
   );
 
-  const onFilterChange = (filter: FilterInput) => {
+  const onFilterChange = (filter: TaskFilterDto) => {
     setFilter(filter);
   };
   const sensors = useSensors(
@@ -189,7 +188,6 @@ const TaskBoardView: React.FC = React.memo(() => {
               <Spin
                 spinning={loading && loadingColumn === status}
                 key={status}
-                
                 wrapperClassName="column-spinner-container h-full min-h-[300px]"
               >
                 <DroppableColumn

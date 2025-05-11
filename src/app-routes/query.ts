@@ -1,17 +1,9 @@
-import { gql } from "@apollo/client";
+import api from "../axios";
+import { User } from "../utils/types";
 
-const GET_AUTH_USER = gql`
-  query GetAuthUser {
-    getAuthUser {
-      email
-      gender
-      id
-      languages
-      fcmToken
-      mobile
-      name
-    }
-  }
-`;
+const getMeQuery = async():Promise<User> => {
+  const response = await api.get("/auth/me")
+  return response.data
+};
 
-export { GET_AUTH_USER };
+export { getMeQuery };

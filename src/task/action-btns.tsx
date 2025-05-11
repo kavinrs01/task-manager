@@ -6,7 +6,7 @@ import { useTasks } from "./task-context";
 
 import { DeleteOutlined } from "@ant-design/icons";
 import { useRequest } from "ahooks";
-import api from "../axios";
+import { deleteTaskQuery } from "./query";
 
 interface DeleteTaskButtonProps {
   task: Task;
@@ -42,20 +42,17 @@ const DeleteTaskButton: React.FC<DeleteTaskButtonProps> = React.memo(
     const { updateTask, setExpandedTask, setIsExpanded } = useTasks();
 
     const { loading: isDeleteLoading, runAsync: deleteTask } = useRequest(
-      async () => {
-        const response = await api.delete<Task>(`/tasks/${task.id}`);
-        return response.data;
-      },
+      deleteTaskQuery,
       { manual: true }
     );
 
     const onClickDelete = useCallback(async () => {
-      const deletedTask = await deleteTask();
+      const deletedTask = await deleteTask(task?.id);
       if (!deletedTask) return;
       updateTask(deletedTask);
       setExpandedTask(null);
       setIsExpanded(false);
-    }, [deleteTask, setExpandedTask, setIsExpanded, updateTask]);
+    }, [deleteTask, setExpandedTask, setIsExpanded, task?.id, updateTask]);
 
     return (
       <Button

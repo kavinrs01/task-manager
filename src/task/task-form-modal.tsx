@@ -11,19 +11,11 @@ import {
   Space,
 } from "antd";
 import dayjs from "dayjs";
-import { unionBy } from "lodash";
 import React, { useCallback, useEffect } from "react";
-import api from "../axios";
 import { useAppSelector } from "../store";
 import { PriorityTag, StatusTag } from "../utils/components";
-import {
-  CreateTaskDto,
-  Task,
-  TaskPriority,
-  TaskStatus,
-  UpdateTaskDto,
-  User,
-} from "../utils/types";
+import { CreateTaskDto, TaskPriority, TaskStatus, User } from "../utils/types";
+import { createTaskQuery, editTaskQuery, getTeamMembersQuery } from "./query";
 import { useTasks } from "./task-context";
 
 interface CreateTaskFormProps {
@@ -38,33 +30,20 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
       (state) => state.currentUser
     );
     const { loading: isEditLoading, runAsync: editTask } = useRequest(
-      async (values: UpdateTaskDto) => {
-        if (!taskToEdit) return;
-        const response = await api.put<Task>(`/tasks/${taskToEdit.id}`, {
-          ...values,
-        });
-        return response.data;
-      },
+      editTaskQuery,
       {
         manual: true,
       }
     );
     const { loading: isCreateLoading, runAsync: createTask } = useRequest(
-      async (values: CreateTaskDto) => {
-        const response = await api.post("/tasks/create", {
-          ...values,
-        });
-        return response.data;
-      },
+      createTaskQuery,
       {
         manual: true,
       }
     );
     const { data: users = [], loading: isUsersLoading } = useRequest(
-      async () => {
-        const response = await api.get("/auth/team-members");
-        return unionBy([currentUser], response.data, "id") as User[];
-      }
+      async (): Promise<User[]> =>
+        await getTeamMembersQuery(currentUser || undefined)
     );
     const [form] = Form.useForm<CreateTaskDto>();
     const { addTasks, updateTask } = useTasks();
@@ -107,10 +86,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
     const onFinish = async (values: CreateTaskDto) => {
       try {
         if (taskToEdit) {
-          const editedTask = await editTask({
-            ...values,
-            dueDate: dayjs(values.dueDate).toISOString(),
-          });
+          const editedTask = await editTask(
+            {
+              ...values,
+              dueDate: dayjs(values.dueDate).toISOString(),
+            },
+            taskToEdit.id
+          );
           if (!editedTask) return message.error("Failed to update task.");
           updateTask(editedTask);
         } else {

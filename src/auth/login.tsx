@@ -1,8 +1,9 @@
 import { LockOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
+import { useRequest } from "ahooks";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import React, { useState } from "react";
-import api from "../axios";
 import { currentUserActions, useAppDispatch } from "../store";
+import { loginQuery } from "./query";
 
 const { Title, Text, Link } = Typography;
 
@@ -13,20 +14,22 @@ interface LoginFormValues {
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const { runAsync } = useRequest(loginQuery, {
+    manual: true,
+  });
   const dispatch = useAppDispatch();
   const onFinish = async (values: LoginFormValues) => {
     setLoading(true);
     try {
       if (values.email && values.password) {
-        const response = await api.post("/auth/login", {
+        const response = await runAsync({
           email: values.email,
           password: values.password,
         });
-        console.log("Login response:", response.data);
 
-        localStorage.setItem("accessToken", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
-        const user = response.data?.user;
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("refreshToken", response.refreshToken);
+        const user = response?.user;
         dispatch(currentUserActions.updateCurrentUser(user));
         message.success("Login successful!");
       } else {

@@ -1,3 +1,4 @@
+import { useRequest } from "ahooks";
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AppLayout } from "../app-layout/app-layout";
@@ -8,16 +9,19 @@ import {
   removeAccessToken,
   removeRefreshToken,
 } from "../auth/tokenService";
-import api from "../axios";
 import { currentUserActions, useAppDispatch, useAppSelector } from "../store";
 import { TaskBoardView } from "../task";
 import { TaskProvider } from "../task/task-context";
 import { User } from "../utils/types";
 import { PrivateRoute } from "./private-route";
 import { PublicRoute } from "./public-route";
+import { getMeQuery } from "./query";
 
 const AppRouter: React.FC = () => {
   const dispatch = useAppDispatch();
+  const { runAsync } = useRequest(getMeQuery, {
+    manual: true,
+  });
   const currentUser = useAppSelector<User | null>((state) => state.currentUser);
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
@@ -34,8 +38,7 @@ const AppRouter: React.FC = () => {
       }
 
       try {
-        const response = await api.get("/auth/me");
-        const user = response.data;
+        const user = await runAsync();
         dispatch(currentUserActions.updateCurrentUser(user));
       } catch (err) {
         removeAccessToken();
@@ -48,7 +51,7 @@ const AppRouter: React.FC = () => {
     };
 
     initializeAuth();
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, runAsync]);
 
   if (!isInitialized) return <AppLoader />;
 

@@ -44,8 +44,8 @@ interface TaskContextType {
   setTasks: (tasks: Task[]) => void;
   addTasks: (tasks: Task[]) => void;
   updateTask: (updatedTask: Task) => void;
-  filter: FilterInput;
-  setFilter: React.Dispatch<React.SetStateAction<FilterInput>>;
+  filter: TaskFilterDto;
+  setFilter: React.Dispatch<React.SetStateAction<TaskFilterDto>>;
   setTaskToEdit: React.Dispatch<React.SetStateAction<Task | null>>;
   taskToEdit: Task | null;
   setIsModelVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -56,7 +56,7 @@ interface TaskContextType {
   setExpandedTask: React.Dispatch<React.SetStateAction<Task | null>>;
 }
 
-type FilterInput = {
+type TaskFilterDto = {
   priority?: TaskPriority;
   dueDate?: {
     gte?: string;
@@ -80,16 +80,36 @@ interface UpdateSortOrderDto {
   columnLastTaskId?: string;
   newStatus: TaskStatus;
 }
+interface TaskListArgs {
+  take?: number;
+  cursor?: string;
+  filter?: TaskFilterDto;
+}
+interface TaskArgsFormattedDto {
+  "filter.priority"?: TaskPriority;
+  "filter.dueDate.gte"?: string;
+  "filter.dueDate.lte"?: string;
+  "filter.status"?: TaskStatus;
+  take?: number;
+  cursor?: string;
+}
 
+interface LoginDto{
+  email: string;
+  password: string
+}
 type UpdateTaskDto = Partial<CreateTaskDto>;
 
 export { Role, TaskPriority, TaskStatus };
 export type {
   CreateTaskDto,
-  FilterInput,
+  TaskFilterDto,
   Task,
   TaskContextType,
   UpdateSortOrderDto,
   UpdateTaskDto,
   User,
+  TaskArgsFormattedDto,
+  TaskListArgs,
+  LoginDto
 };

@@ -1,6 +1,6 @@
 import { unionBy } from "lodash";
 import React, { createContext, useCallback, useContext, useState } from "react";
-import { FilterInput, Task, TaskContextType } from "../utils/types";
+import { Task, TaskContextType, TaskFilterDto } from "../utils/types";
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
@@ -12,20 +12,18 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   const [expandedTask, setExpandedTask] = useState<Task | null>(null);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [tasks, setTasksState] = useState<Task[]>([]);
-  const [filter, setFilter] = useState<FilterInput>({});
+  const [filter, setFilter] = useState<TaskFilterDto>({});
 
   const setTasks = useCallback((newTasks: Task[]) => {
     setTasksState(newTasks);
   }, []);
 
   const addTasks = useCallback((tasks: Task[]) => {
-    setTasksState((prev) => unionBy(prev, tasks, "id"));
+    setTasksState((prev) => unionBy(tasks, prev, "id"));
   }, []);
 
   const updateTask = useCallback((updatedTask: Task) => {
-    setTasksState((prev) =>
-      prev.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
+    setTasksState((prev) => unionBy([updatedTask], prev, "id"));
   }, []);
 
   return (
