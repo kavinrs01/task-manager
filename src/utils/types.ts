@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 interface User {
   id: string;
   name: string;
@@ -37,11 +39,49 @@ interface Task {
   isArchived: boolean;
 }
 
-export type { Task, User };
-export { Role, TaskStatus, TaskPriority };
-export interface TaskContextType {
+interface TaskContextType {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
   addTasks: (tasks: Task[]) => void;
   updateTask: (updatedTask: Task) => void;
+  filter: FilterInput;
+  setFilter: React.Dispatch<React.SetStateAction<FilterInput>>;
+  setTaskToEdit: React.Dispatch<React.SetStateAction<Task | null>>;
+  taskToEdit: Task | null;
+  setIsModelVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  isModelVisible: boolean;
+  isExpanded: boolean;
+  setIsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  expandedTask: Task | null;
+  setExpandedTask: React.Dispatch<React.SetStateAction<Task | null>>;
 }
+
+type FilterInput = {
+  priority?: TaskPriority;
+  dueDate?: {
+    gte?: string;
+    lte?: string;
+  };
+};
+
+interface CreateTaskDto {
+  title: string;
+  assignedToUserId: string;
+  description?: string;
+  dueDate: string | Dayjs;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  sortOrder?: number;
+}
+
+type UpdateTaskDto = Partial<CreateTaskDto>;
+
+export { Role, TaskPriority, TaskStatus };
+export type {
+  FilterInput,
+  Task,
+  TaskContextType,
+  User,
+  CreateTaskDto,
+  UpdateTaskDto,
+};

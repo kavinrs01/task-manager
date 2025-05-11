@@ -4,6 +4,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { removeAccessToken, removeRefreshToken } from "../auth/tokenService";
 import { currentUserActions, useAppDispatch } from "../store";
+import { LogoutOutlined } from "@ant-design/icons";
 import "./styles.less";
 
 const AppHeader: React.FC = () => {
@@ -23,7 +24,7 @@ const AppHeader: React.FC = () => {
       </div>
 
       <div className="flex flex-row items-center gap-6">
-        <Button type="primary" onClick={handleLogout}>
+        <Button type="primary" onClick={handleLogout} icon={<LogoutOutlined />}>
           Logout
         </Button>
       </div>

@@ -1,4 +1,4 @@
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { LockOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import React, { useState } from "react";
 import api from "../axios";
@@ -80,9 +80,9 @@ const Login: React.FC = () => {
             />
           </Form.Item>
 
-          <div className="flex justify-end mb-4">
+          {/* <div className="flex justify-end mb-4">
             <Link href="/forgot-password">Forgot password?</Link>
-          </div>
+          </div> */}
 
           <Form.Item>
             <Button
@@ -90,7 +90,9 @@ const Login: React.FC = () => {
               htmlType="submit"
               className="w-full"
               size="large"
+              icon={<LoginOutlined />}
               loading={loading}
+              disabled={loading}
             >
               Log in
             </Button>

@@ -1,30 +1,52 @@
 import { unionBy } from "lodash";
-import React, { createContext, useContext, useState } from "react";
-import { Task, TaskContextType } from "../utils/types";
+import React, { createContext, useCallback, useContext, useState } from "react";
+import { FilterInput, Task, TaskContextType } from "../utils/types";
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [isModelVisible, setIsModelVisible] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [expandedTask, setExpandedTask] = useState<Task | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [tasks, setTasksState] = useState<Task[]>([]);
+  const [filter, setFilter] = useState<FilterInput>({});
 
-  const setTasks = (newTasks: Task[]) => {
+  const setTasks = useCallback((newTasks: Task[]) => {
     setTasksState(newTasks);
-  };
+  }, []);
 
-  const addTasks = (tasks: Task[]) => {
+  const addTasks = useCallback((tasks: Task[]) => {
     setTasksState((prev) => unionBy(prev, tasks, "id"));
-  };
+  }, []);
 
-  const updateTask = (updatedTask: Task) => {
+  const updateTask = useCallback((updatedTask: Task) => {
     setTasksState((prev) =>
       prev.map((task) => (task.id === updatedTask.id ? updatedTask : task))
     );
-  };
+  }, []);
 
   return (
-    <TaskContext.Provider value={{ tasks, setTasks, addTasks, updateTask }}>
+    <TaskContext.Provider
+      value={{
+        tasks,
+        setTasks,
+        addTasks,
+        updateTask,
+        filter,
+        setFilter,
+        taskToEdit,
+        setTaskToEdit,
+        isModelVisible,
+        setIsModelVisible,
+        isExpanded,
+        setIsExpanded,
+        expandedTask,
+        setExpandedTask,
+      }}
+    >
       {children}
     </TaskContext.Provider>
   );
