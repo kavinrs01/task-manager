@@ -10,23 +10,31 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Typography } from "antd";
+import { useRequest } from "ahooks";
+import { Spin, Typography } from "antd";
 import { findIndex, groupBy, last, orderBy, uniqBy } from "lodash";
 import { DateTime } from "luxon";
 import React, { useCallback, useMemo, useState } from "react";
 import { FilterInput, Task, TaskStatus } from "../utils/types";
+import { updateSortOderQuery } from "./query";
 import { SortableTaskCard } from "./task-card";
 import { DroppableColumn } from "./task-column";
 import { useTasks } from "./task-context";
 import { TaskModal } from "./task-expand-view";
 import TaskFilter from "./task-filter";
 import { CreateTaskModal } from "./task-form-modal";
+import "./styles.less";
 
 const { Title } = Typography;
 
 const TaskBoardView: React.FC = React.memo(() => {
-  const { tasks, setTasks, setFilter, filter } = useTasks();
+  const { tasks, updateTask, setFilter, setTasks, filter } = useTasks();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [loadingColumn, setLoadingColumn] = useState<TaskStatus>();
+
+  const { loading, runAsync } = useRequest(updateSortOderQuery, {
+    manual: true,
+  });
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveTaskId(event.active.id as string);
@@ -70,7 +78,7 @@ const TaskBoardView: React.FC = React.memo(() => {
   }, [tasks, filter]);
 
   const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
+    async (event: DragEndEvent) => {
       const { active, over } = event;
       setActiveTaskId(null);
       if (!over || active.id === over.id) return;
@@ -86,7 +94,7 @@ const TaskBoardView: React.FC = React.memo(() => {
         : tasks.find((t) => t.id === over.id)?.status ?? null;
 
       if (!statusOfDropColumn) return;
-
+      setLoadingColumn(statusOfDropColumn);
       const overTask = tasks.find((t) => t.id === over.id);
       const orderedTasks = orderBy(tasks, ["sortOrder"], ["desc"]);
       console.log(overTask);
@@ -105,7 +113,7 @@ const TaskBoardView: React.FC = React.memo(() => {
         newSortOrder = overTask.sortOrder + 1;
       } else {
         // No overTask, place at bottom of the column
-        const lastInColumn = last(orderedTasks);
+        const lastInColumn = last(groupedAndSortedTasks[statusOfDropColumn]);
         newSortOrder = (lastInColumn?.sortOrder ?? 0) - 1;
       }
 
@@ -123,11 +131,24 @@ const TaskBoardView: React.FC = React.memo(() => {
       });
 
       setTasks(updatedTasks);
+      const updatedTask = await runAsync({
+        activeTaskId: activeTask.id,
+        overTaskId: overTask?.id,
+        newStatus: statusOfDropColumn,
+        columnLastTaskId: isDroppingOnColumn
+          ? last(groupedAndSortedTasks[statusOfDropColumn])?.id
+          : undefined,
+      });
+
+      updateTask(updatedTask);
     },
-    [setTasks, tasks]
+    [groupedAndSortedTasks, runAsync, setTasks, tasks, updateTask]
   );
   //Notes
-  // if not overTask and same status means move to last of the same status , if overTask and same status means order changed , if not overTask  and not status are equal means move to last of other status , if overTask and  status  changed means order and status changed
+  // if not overTask and same status means move to last of the same status ,
+  //  if overTask and same status means order changed ,
+  // if not overTask  and not status are equal means move to last of other status ,
+  //  if overTask and  status  changed means order and status changed
 
   const activeTask = useMemo(
     () => tasks.find((t) => t.id === activeTaskId) || null,
@@ -165,12 +186,18 @@ const TaskBoardView: React.FC = React.memo(() => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {Object.values(TaskStatus).map((status) => {
             return (
-              <DroppableColumn
-                status={status}
+              <Spin
+                spinning={loading && loadingColumn === status}
                 key={status}
-                filter={filter}
-                tasks={groupedAndSortedTasks[status]}
-              ></DroppableColumn>
+                
+                wrapperClassName="column-spinner-container h-full min-h-[300px]"
+              >
+                <DroppableColumn
+                  status={status}
+                  filter={filter}
+                  tasks={groupedAndSortedTasks[status]}
+                />
+              </Spin>
             );
           })}
         </div>

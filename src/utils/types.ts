@@ -74,14 +74,22 @@ interface CreateTaskDto {
   sortOrder?: number;
 }
 
+interface UpdateSortOrderDto {
+  activeTaskId: string;
+  overTaskId?: string;
+  columnLastTaskId?: string;
+  newStatus: TaskStatus;
+}
+
 type UpdateTaskDto = Partial<CreateTaskDto>;
 
 export { Role, TaskPriority, TaskStatus };
 export type {
+  CreateTaskDto,
   FilterInput,
   Task,
   TaskContextType,
-  User,
-  CreateTaskDto,
+  UpdateSortOrderDto,
   UpdateTaskDto,
+  User,
 };

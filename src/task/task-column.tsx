@@ -91,7 +91,7 @@ const DroppableColumn: React.FC<{
         <motion.div
           ref={setNodeRef}
           id={status}
-          className={`rounded-xl p-4 pb-[300px] shadow-md min-h-[300px] border border-gray-200 transition-colors duration-200 ${
+          className={`rounded-xl p-4 pb-[300px] shadow-md h-full min-h-[300px] border border-gray-200 transition-colors duration-200 ${
             highlighted ? "bg-blue-100 border-blue-300" : "bg-gray-100"
           }`}
           animate={{

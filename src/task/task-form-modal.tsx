@@ -156,7 +156,12 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
         </Form.Item>
 
         <Space className="mb-2" wrap>
-          <Form.Item name="priority" label="Priority" required>
+          <Form.Item
+            name="priority"
+            label="Priority"
+            required
+            rules={[{ required: true, message: "Please select priority!" }]}
+          >
             <Select
               placeholder="Select priority"
               options={priorityOptions}
@@ -164,7 +169,11 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
             />
           </Form.Item>
 
-          <Form.Item name="status" label="Status" required>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: "Please select status!" }]}
+          >
             <Select
               placeholder="Select status"
               options={statusOptions}
@@ -172,7 +181,12 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
             />
           </Form.Item>
 
-          <Form.Item name="assignedToUserId" label="Assignee" required>
+          <Form.Item
+            name="assignedToUserId"
+            label="Assignee"
+            required
+            rules={[{ required: true, message: "Please select assignee!" }]}
+          >
             <Select
               loading={isUsersLoading}
               placeholder="Assign to"
@@ -181,7 +195,12 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
             />
           </Form.Item>
 
-          <Form.Item name="dueDate" label="Due Date" required>
+          <Form.Item
+            name="dueDate"
+            label="Due Date"
+            required
+            rules={[{ required: true, message: "Please select due date!" }]}
+          >
             <DatePicker
               showTime
               style={{ width: 200 }}
