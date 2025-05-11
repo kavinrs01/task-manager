@@ -9,9 +9,11 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+
+import { FilterOutlined } from "@ant-design/icons";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useRequest } from "ahooks";
-import { Spin, Typography } from "antd";
+import { Badge, Button, Spin, Typography } from "antd";
 import { findIndex, groupBy, last, orderBy, uniqBy } from "lodash";
 import { DateTime } from "luxon";
 import React, { useCallback, useMemo, useState } from "react";
@@ -31,7 +33,7 @@ const TaskBoardView: React.FC = React.memo(() => {
   const { tasks, updateTask, setFilter, setTasks, filter } = useTasks();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [loadingColumn, setLoadingColumn] = useState<TaskStatus>();
-
+  const [hideFilter, setHideFilter] = useState(false);
   const { loading, runAsync } = useRequest(updateSortOderQuery, {
     manual: true,
   });
@@ -97,7 +99,6 @@ const TaskBoardView: React.FC = React.memo(() => {
       setLoadingColumn(statusOfDropColumn);
       const overTask = tasks.find((t) => t.id === over.id);
       const orderedTasks = orderBy(tasks, ["sortOrder"], ["desc"]);
-      console.log(overTask);
       const overIndex = overTask
         ? findIndex(orderedTasks, { id: overTask.id })
         : -1;
@@ -170,11 +171,23 @@ const TaskBoardView: React.FC = React.memo(() => {
         <Title level={3} className="text-gray-800 ">
           Task Board
         </Title>
-
-        <CreateTaskModal />
+        <div className="flex gap-2">
+          <Badge dot={!!filter?.priority || !!filter?.dueDate}>
+            <Button
+              type="primary"
+              icon={<FilterOutlined className="text-gray-800" />}
+              onClick={() => setHideFilter((prev) => !prev)}
+            >
+              {hideFilter ? "Show Filter" : "Hide Filter"}
+            </Button>
+          </Badge>
+          <CreateTaskModal />
+        </div>
         <TaskModal />
       </div>
-      <TaskFilter onFilterChange={onFilterChange} previousFilter={filter} />
+      {!hideFilter && (
+        <TaskFilter onFilterChange={onFilterChange} previousFilter={filter} />
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={rectIntersection}

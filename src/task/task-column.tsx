@@ -4,10 +4,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useRequest } from "ahooks";
-import { capitalize, isNil } from "lodash";
+import { capitalize, isNil, last } from "lodash";
 import { DateTime } from "luxon";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { getStatusInfo } from "../utils/components";
 import {
   Task,
@@ -25,41 +26,71 @@ const DroppableColumn: React.FC<{
   filter: TaskFilterDto;
 }> = React.memo(({ status, tasks, filter }) => {
   const { isOver, setNodeRef } = useDroppable({ id: status });
-  const { data, loading, runAsync } = useRequest(listTasksQuery, {
+  const { loading, runAsync } = useRequest(listTasksQuery, {
     manual: true,
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const parsedFilter: TaskArgsFormattedDto = {};
-      if (filter?.priority) {
-        parsedFilter["filter.priority"] = filter.priority;
-      }
-
-      if (filter?.dueDate) {
-        if (filter.dueDate.gte && !isNil(filter.dueDate.gte)) {
-          parsedFilter["filter.dueDate.gte"] =
-            DateTime.fromISO(filter.dueDate.gte).toISO() || undefined;
-        }
-        if (filter.dueDate.lte && !isNil(filter.dueDate.lte)) {
-          parsedFilter["filter.dueDate.lte"] =
-            DateTime.fromISO(filter.dueDate.lte).toISO() || undefined;
-        }
-      }
-
-      parsedFilter["filter.status"] = status;
-
-      await runAsync(parsedFilter);
-    };
-    fetchData();
-  }, [filter, status, runAsync]);
+  const [hasMore, setHasMore] = useState(true);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const TAKE = 10;
+  const [isFetching, setIsFetching] = useState(false);
   const { addTasks } = useTasks();
 
-  useEffect(() => {
-    if (data && data?.length) {
-      addTasks(data);
+  const fetchData = useCallback(async () => {
+    if (isFetching || !hasMore) return;
+
+    setIsFetching(true);
+
+    const parsedFilter: TaskArgsFormattedDto = {
+      take: TAKE,
+      cursor: cursor,
+    };
+
+    if (filter?.priority) {
+      parsedFilter["filter.priority"] = filter.priority;
     }
-  }, [addTasks, data]);
+
+    if (filter?.dueDate) {
+      if (filter.dueDate.gte && !isNil(filter.dueDate.gte)) {
+        parsedFilter["filter.dueDate.gte"] =
+          DateTime.fromISO(filter.dueDate.gte).toISO() || undefined;
+      }
+      if (filter.dueDate.lte && !isNil(filter.dueDate.lte)) {
+        parsedFilter["filter.dueDate.lte"] =
+          DateTime.fromISO(filter.dueDate.lte).toISO() || undefined;
+      }
+    }
+
+    parsedFilter["filter.status"] = status;
+
+    try {
+      const newTasks = await runAsync(parsedFilter);
+
+      if (newTasks?.length < TAKE) {
+        setHasMore(false);
+      }
+
+      if (newTasks?.length > 0) {
+        setCursor(last(newTasks)?.id);
+        addTasks(newTasks);
+      }
+    } finally {
+      setIsFetching(false);
+    }
+  }, [
+    isFetching,
+    hasMore,
+    cursor,
+    filter.priority,
+    filter.dueDate,
+    status,
+    runAsync,
+    addTasks,
+  ]);
+
+  useEffect(() => {
+    fetchData(); // initial fetch
+  }, []);
 
   const [highlighted, setHighlighted] = useState<boolean>(false);
 
@@ -71,8 +102,8 @@ const DroppableColumn: React.FC<{
     }
   }, [isOver]);
 
-  const { icon, className } = getStatusInfo(status);
-
+  const { icon, className } = useMemo(() => getStatusInfo(status), [status]);
+  const scrollableId = `column-${status}`;
   return (
     <AnimatePresence>
       <SortableContext
@@ -83,19 +114,19 @@ const DroppableColumn: React.FC<{
       >
         <motion.div
           ref={setNodeRef}
-          id={status}
-          className={`rounded-xl p-4 pb-[300px] shadow-md h-full min-h-[300px] border border-gray-200 transition-colors duration-200 ${
+          id={scrollableId}
+          className={`rounded-xl  pb-[300px] shadow-md h-full min-h-[300px] max-h-[600px] overflow-auto border border-gray-200 transition-colors duration-200 ${
             highlighted ? "bg-blue-100 border-blue-300" : "bg-gray-100"
           }`}
           animate={{
             backgroundColor: isOver
               ? "rgba(191, 219, 254, 0.3)"
-              : "rgba(247, 250, 252, 1)",
+              : "white",
             borderColor: isOver ? "#93c5fd" : "#e5e7eb",
           }}
         >
           <div
-            className={`flex items-center mb-4  font-semibold text-lg border-b border-gray-300 pb-2 gap-2 ${className}`}
+            className={`flex items-center mb-4  font-semibold text-lg border-b border-gray-300 p-2 gap-2 ${className} sticky top-0 z-100 bg-white px-5 `}
           >
             {icon}
             <p>{capitalize(status).replace("_", " ")}</p>
@@ -104,9 +135,19 @@ const DroppableColumn: React.FC<{
             Array(3)
               .fill(0)
               .map((_, i) => <TaskLoadingCard key={i} />)}
-          {tasks?.map((task) => (
-            <SortableTaskCard key={task.id} task={task} />
-          ))}
+          <InfiniteScroll
+            dataLength={tasks.length}
+            next={fetchData}
+            hasMore={hasMore}
+            loader={<TaskLoadingCard />}
+            scrollableTarget={scrollableId}
+            scrollThreshold={0.9}
+            className="p-4 flex flex-col gap-2"
+          >
+            {tasks.map((task) => (
+              <SortableTaskCard key={task.id} task={task} />
+            ))}
+          </InfiniteScroll>
         </motion.div>
       </SortableContext>
     </AnimatePresence>

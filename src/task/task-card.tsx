@@ -9,7 +9,7 @@ import { Task } from "../utils/types";
 import { DeleteTaskButton, EditTaskButton } from "./action-btns";
 import { useTasks } from "./task-context";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
   const { setIsExpanded, setExpandedTask } = useTasks();
@@ -29,6 +29,7 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
     transition,
     isSorting,
     isDragging,
+    over,
   } = useSortable({ id: task.id });
   const style: MotionStyle = useMemo(() => {
     return {
@@ -54,14 +55,15 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="!mb-3 shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 rounded-md relative overflow-hidden"
+      className="!mb-3  transition-all duration-200 rounded-md relative overflow-hidden flex flex-col gap-2 !bg-transparent"
     >
       <motion.div
-        className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-10 cursor-grab rounded-md hover:opacity-100 opacity-0"
+        className="absolute top-0 left-0 w-full h-full flex-col flex items-center justify-center z-10 cursor-grab rounded-md hover:opacity-100 opacity-0 bg-gray-300/40 border-2 border-amber-50 gap-2"
         style={{
           transition: "opacity 0.2s ease-in-out",
         }}
       >
+        <Text>Drag to reorder or update status</Text>
         <div
           onKeyDown={(event) => {
             event.stopPropagation();
@@ -81,27 +83,39 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
           />
         </div>
       </motion.div>
-      <Card className="!border-0 !shadow-none !bg-transparent relative">
-        <Title level={5} className="">
-          {task.title}
-        </Title>
-        <Paragraph
-          className="block mb-2 text-sm"
-          ellipsis={{
-            rows: 2,
-          }}
-        >
-          {task.description}
-        </Paragraph>
+      <div className="flex flex-col gap-3">
+        {over?.id === task.id && (
+          <motion.div
+            className=" bg-blue-100/50 rounded-md flex items-center justify-center text-blue-500 font-semibold h-[100px] mb-3 mt-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            Drop Here
+          </motion.div>
+        )}
+        <Card className=" ">
+          <Title level={5} className="">
+            {task.title}
+          </Title>
+          <Paragraph
+            className="block mb-2 text-sm"
+            ellipsis={{
+              rows: 2,
+            }}
+          >
+            {task.description}
+          </Paragraph>
 
-        <div className="flex text-sm items-center flex-wrap gap-2">
-          <PriorityTag priority={task.priority} />
-          <div className="flex items-center flex-wrap gap-2">
-            <StatusTag status={task.status} />
-            <DueDateTag dueDate={task.dueDate} />
+          <div className="flex text-sm items-center flex-wrap gap-2">
+            <PriorityTag priority={task.priority} />
+            <div className="flex items-center flex-wrap gap-2">
+              <StatusTag status={task.status} />
+              <DueDateTag dueDate={task.dueDate} />
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </motion.div>
   );
 });
