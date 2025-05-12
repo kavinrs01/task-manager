@@ -119,9 +119,7 @@ const DroppableColumn: React.FC<{
             highlighted ? "bg-blue-100 border-blue-300" : "bg-gray-100"
           }`}
           animate={{
-            backgroundColor: isOver
-              ? "rgba(191, 219, 254, 0.3)"
-              : "white",
+            backgroundColor: isOver ? "rgba(191, 219, 254, 0.3)" : "#fff",
             borderColor: isOver ? "#93c5fd" : "#e5e7eb",
           }}
         >

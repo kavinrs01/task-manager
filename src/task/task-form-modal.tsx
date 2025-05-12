@@ -8,14 +8,20 @@ import {
   message,
   Modal,
   Select,
-  Space,
+  Switch,
 } from "antd";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect } from "react";
 import { useAppSelector } from "../store";
 import { PriorityTag, StatusTag } from "../utils/components";
-import { CreateTaskDto, TaskPriority, TaskStatus, User } from "../utils/types";
-import { createTaskQuery, editTaskQuery, getTeamMembersQuery } from "./query";
+import {
+  CreateTaskDto,
+  Role,
+  TaskPriority,
+  TaskStatus,
+  User,
+} from "../utils/types";
+import { createTaskQuery, editTaskQuery } from "./query";
 import { useTasks } from "./task-context";
 
 interface CreateTaskFormProps {
@@ -41,10 +47,10 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
         manual: true,
       }
     );
-    const { data: users = [], loading: isUsersLoading } = useRequest(
-      async (): Promise<User[]> =>
-        await getTeamMembersQuery(currentUser || undefined)
+    const teamMembers = useAppSelector<User[]>(
+      (state) => state?.teamMembers || []
     );
+
     const [form] = Form.useForm<CreateTaskDto>();
     const { addTasks, updateTask } = useTasks();
 
@@ -56,6 +62,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
         status: taskToEdit.status,
         priority: taskToEdit.priority,
         assignedToUserId: taskToEdit.assignedToUserId,
+        isPrivate: taskToEdit.isPrivate,
         dueDate: dayjs(taskToEdit.dueDate),
       });
     }, [form, taskToEdit]);
@@ -78,7 +85,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
       ),
     }));
 
-    const assigneeOptions = users?.map((user) => ({
+    const assigneeOptions = teamMembers?.map((user) => ({
       value: user.id,
       label: user.id === currentUser?.id ? "You" : user.name,
     }));
@@ -122,6 +129,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
           status: TaskStatus.TODO,
           priority: TaskPriority.LOW,
           assignedToUserId: currentUser?.id,
+          isPrivate: currentUser?.role === Role.USER ? true : false,
         }}
         className="flex flex-col gap-4"
       >
@@ -137,7 +145,27 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
           <Input.TextArea placeholder="Add description..." rows={4} />
         </Form.Item>
 
-        <Space className="mb-2" wrap>
+        <Form.Item
+          name="isPrivate"
+          label="Private Task"
+          valuePropName="checked"
+          extra={
+            currentUser?.role === Role.USER
+              ? "As a user, tasks you create are private and this cannot be changed."
+              : "Enable to make this task visible only to you."
+          }
+        >
+          <Switch
+            disabled={currentUser?.role === Role.USER}
+            onChange={(checked) => {
+              if (checked) {
+                form.setFieldsValue({ assignedToUserId: currentUser?.id });
+              }
+            }}
+          />
+        </Form.Item>
+
+        <div className="mb-2 flex gap-1 flex-wrap">
           <Form.Item
             name="priority"
             label="Priority"
@@ -164,17 +192,38 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
           </Form.Item>
 
           <Form.Item
-            name="assignedToUserId"
-            label="Assignee"
-            required
-            rules={[{ required: true, message: "Please select assignee!" }]}
+            shouldUpdate={(prev, current) =>
+              prev.isPrivate !== current.isPrivate
+            }
           >
-            <Select
-              loading={isUsersLoading}
-              placeholder="Assign to"
-              options={assigneeOptions}
-              style={{ width: 150 }}
-            />
+            {() => {
+              const isPrivate = form.getFieldValue("isPrivate");
+              const isUser = currentUser?.role === Role.USER;
+              const isDisabled = isPrivate || isUser;
+
+              return (
+                <Form.Item
+                  name="assignedToUserId"
+                  label="Assignee"
+                  required
+                  rules={[
+                    { required: true, message: "Please select assignee!" },
+                  ]}
+                  extra={
+                    isUser || isPrivate
+                      ? "You can only assign tasks to yourself when the task is private."
+                      : undefined
+                  }
+                >
+                  <Select
+                    placeholder="Assign to"
+                    options={assigneeOptions}
+                    style={{ width: 150 }}
+                    disabled={isDisabled}
+                  />
+                </Form.Item>
+              );
+            }}
           </Form.Item>
 
           <Form.Item
@@ -190,7 +239,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = React.memo(
               placeholder="Select due date & time"
             />
           </Form.Item>
-        </Space>
+        </div>
 
         <div className="flex justify-end gap-2">
           <Button onClick={onCancel}>Cancel</Button>

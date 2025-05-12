@@ -37,6 +37,7 @@ interface Task {
   createdByUser: Partial<User>;
   createdByUserId: string;
   isArchived: boolean;
+  isPrivate: boolean;
 }
 
 interface TaskContextType {
@@ -72,6 +73,7 @@ interface CreateTaskDto {
   status?: TaskStatus;
   priority?: TaskPriority;
   sortOrder?: number;
+  isPrivate: boolean;
 }
 
 interface UpdateSortOrderDto {
@@ -94,9 +96,9 @@ interface TaskArgsFormattedDto {
   cursor?: string;
 }
 
-interface LoginDto{
+interface LoginDto {
   email: string;
-  password: string
+  password: string;
 }
 type UpdateTaskDto = Partial<CreateTaskDto>;
 
@@ -111,5 +113,5 @@ export type {
   User,
   TaskArgsFormattedDto,
   TaskListArgs,
-  LoginDto
+  LoginDto,
 };

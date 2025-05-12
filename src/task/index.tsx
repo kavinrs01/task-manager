@@ -16,9 +16,10 @@ import { useRequest } from "ahooks";
 import { Badge, Button, Spin, Typography } from "antd";
 import { findIndex, groupBy, last, orderBy, uniqBy } from "lodash";
 import { DateTime } from "luxon";
-import React, { useCallback, useMemo, useState } from "react";
-import { Task, TaskFilterDto, TaskStatus } from "../utils/types";
-import { updateSortOderQuery } from "./query";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { teamMembersActions, useAppDispatch, useAppSelector } from "../store";
+import { Task, TaskFilterDto, TaskStatus, User } from "../utils/types";
+import { getTeamMembersQuery, updateSortOderQuery } from "./query";
 import "./styles.less";
 import { SortableTaskCard } from "./task-card";
 import { DroppableColumn } from "./task-column";
@@ -30,6 +31,18 @@ import { CreateTaskModal } from "./task-form-modal";
 const { Title } = Typography;
 
 const TaskBoardView: React.FC = React.memo(() => {
+  const currentUser = useAppSelector<User | null>((state) => state.currentUser);
+  const dispatch = useAppDispatch();
+  const { data: users = [], loading: isUsersLoading } = useRequest(
+    async (): Promise<User[]> =>
+      await getTeamMembersQuery(currentUser || undefined)
+  );
+
+  useEffect(() => {
+    if (users.length && !isUsersLoading) {
+      dispatch(teamMembersActions.updateTeamMembers(users));
+    }
+  }, [dispatch, isUsersLoading, users]);
   const { tasks, updateTask, setFilter, setTasks, filter } = useTasks();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [loadingColumn, setLoadingColumn] = useState<TaskStatus>();
@@ -201,6 +214,7 @@ const TaskBoardView: React.FC = React.memo(() => {
               <Spin
                 spinning={loading && loadingColumn === status}
                 key={status}
+                tip="Updating tasks, please wait....."
                 wrapperClassName="column-spinner-container h-full min-h-[300px]"
               >
                 <DroppableColumn

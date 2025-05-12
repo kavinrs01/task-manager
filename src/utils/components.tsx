@@ -6,13 +6,16 @@ import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   InfoCircleOutlined,
+  LockOutlined,
+  UserOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
 import { Tag } from "antd";
-import { capitalize } from "lodash";
+import { capitalize, keyBy } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
-import { TaskPriority, TaskStatus } from "./types";
+import { useAppSelector } from "../store";
+import { Task, TaskPriority, TaskStatus, User } from "./types";
 
 const getStatusInfo = (status: TaskStatus) => {
   switch (status) {
@@ -122,4 +125,40 @@ const DueDateTag: React.FC<{ dueDate: string }> = ({ dueDate }) => {
   );
 };
 
-export { DueDateTag, getPriorityColor, getStatusInfo, PriorityTag, StatusTag };
+const PrivateTaskTag: React.FC<{ isPrivate: boolean }> = ({ isPrivate }) => {
+  if (!isPrivate) return null;
+  return (
+    <Tag color="yellow" className="mb-2">
+      <LockOutlined className=" text-amber-300" />
+      Private
+    </Tag>
+  );
+};
+
+const AssigneeTag: React.FC<{ task: Task }> = ({ task }) => {
+  const currentUser = useAppSelector<User | null>((state) => state.currentUser);
+  const teamMembers = useAppSelector<User[]>(
+    (state) => state?.teamMembers || []
+  );
+  const teamMembersMap = useMemo(() => {
+    return keyBy(teamMembers, "id");
+  }, [teamMembers]);
+  return (
+    <Tag>
+      <UserOutlined className="mr-1" />
+      {task?.assignedToUserId === currentUser?.id
+        ? "You"
+        : teamMembersMap[task?.assignedToUserId]?.name}
+    </Tag>
+  );
+};
+
+export {
+  AssigneeTag,
+  DueDateTag,
+  getPriorityColor,
+  getStatusInfo,
+  PriorityTag,
+  PrivateTaskTag,
+  StatusTag,
+};

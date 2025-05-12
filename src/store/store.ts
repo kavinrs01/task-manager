@@ -1,8 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { currentUserReducer } from "./slice";
+import { currentUserReducer, teamMembersReducer } from "./slice";
 const store = configureStore({
   reducer: {
     currentUser: currentUserReducer,
+    teamMembers: teamMembersReducer,
   },
 });
 type AppStore = typeof store;

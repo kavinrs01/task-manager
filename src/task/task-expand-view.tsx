@@ -1,6 +1,12 @@
 import { Modal, Typography } from "antd";
 import React, { useState } from "react";
-import { DueDateTag, PriorityTag, StatusTag } from "../utils/components";
+import {
+  AssigneeTag,
+  DueDateTag,
+  PriorityTag,
+  PrivateTaskTag,
+  StatusTag,
+} from "../utils/components";
 import { DeleteTaskButton, EditTaskButton } from "./action-btns";
 import { useTasks } from "./task-context";
 
@@ -28,6 +34,7 @@ const TaskModal: React.FC = React.memo(() => {
       footer={null}
       title={
         <div className="flex items-center gap-2">
+          <PrivateTaskTag isPrivate={task?.isPrivate || false} />
           <Title level={4} className="!mb-0 text-gray-800">
             Task Details
           </Title>
@@ -39,7 +46,7 @@ const TaskModal: React.FC = React.memo(() => {
       width={"90%"}
     >
       {task && (
-        <div className=" bg-transparent border-none  p-4">
+        <div className=" bg-transparent border-none  p-2">
           <Title level={4} className="mb-2 text-gray-800">
             {task?.title}
           </Title>
@@ -72,6 +79,10 @@ const TaskModal: React.FC = React.memo(() => {
             <div className="flex items-center gap-2 col-span-full">
               <span className="font-medium text-gray-700">Due Date:</span>
               <DueDateTag dueDate={task.dueDate} />
+            </div>
+            <div className="flex items-center gap-2 col-span-full">
+              <span className="font-medium text-gray-700">Assignee:</span>
+              <AssigneeTag task={task} />
             </div>
           </div>
         </div>

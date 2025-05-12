@@ -4,7 +4,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button, Card, Typography } from "antd";
 import { motion, MotionStyle, Variants } from "motion/react";
 import React, { useCallback, useMemo } from "react";
-import { DueDateTag, PriorityTag, StatusTag } from "../utils/components";
+import {
+  AssigneeTag,
+  DueDateTag,
+  PriorityTag,
+  PrivateTaskTag,
+  StatusTag,
+} from "../utils/components";
 import { Task } from "../utils/types";
 import { DeleteTaskButton, EditTaskButton } from "./action-btns";
 import { useTasks } from "./task-context";
@@ -36,7 +42,7 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
       transform: CSS.Transform.toString(transform),
       transition,
       border: isSorting && isDragging ? "1px dashed #000" : "none",
-      backgroundColor: isSorting && isDragging ? "#f5f5f5" : "white",
+      backgroundColor: isSorting && isDragging ? "#f5f5f5" : "#fff",
     };
   }, [isDragging, isSorting, transform, transition]);
 
@@ -55,15 +61,17 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="!mb-3  transition-all duration-200 rounded-md relative overflow-hidden flex flex-col gap-2 !bg-transparent"
+      className="!mb-3  transition-all duration-200 rounded-md relative overflow-hidden flex flex-col gap-2 shadow-md"
     >
       <motion.div
-        className="absolute top-0 left-0 w-full h-full flex-col flex items-center justify-center z-10 cursor-grab rounded-md hover:opacity-100 opacity-0 bg-gray-300/40 border-2 border-amber-50 gap-2"
+        className="absolute top-0 left-0 w-full h-full flex-col flex items-center justify-center z-10 cursor-grab rounded-md hover:opacity-100 opacity-0 bg-gray-300/40 border-2 border-gray-50 gap-2"
         style={{
           transition: "opacity 0.2s ease-in-out",
         }}
       >
-        <Text>Drag to reorder or update status</Text>
+        <Text className="p-2 font-semibold bg-white rounded-md">
+          Drag to reorder or update status
+        </Text>
         <div
           onKeyDown={(event) => {
             event.stopPropagation();
@@ -71,7 +79,7 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
           onPointerDown={(event) => {
             event.stopPropagation();
           }}
-          className="flex items-center justify-center p-2 rounded-md bg-gray-200 cursor-auto gap-1"
+          className="flex items-center justify-center p-2 rounded-md bg-white cursor-auto gap-1"
         >
           <DeleteTaskButton task={task} />
           <EditTaskButton task={task} />
@@ -94,18 +102,21 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
             Drop Here
           </motion.div>
         )}
-        <Card className=" ">
+        <Card className="!p-0.5 !bg-white">
+          <PrivateTaskTag isPrivate={task.isPrivate} />
           <Title level={5} className="">
             {task.title}
           </Title>
-          <Paragraph
-            className="block mb-2 text-sm"
-            ellipsis={{
-              rows: 2,
-            }}
-          >
-            {task.description}
-          </Paragraph>
+          {task.description && (
+            <Paragraph
+              className="block mb-2 text-sm"
+              ellipsis={{
+                rows: 2,
+              }}
+            >
+              {task.description}
+            </Paragraph>
+          )}
 
           <div className="flex text-sm items-center flex-wrap gap-2">
             <PriorityTag priority={task.priority} />
@@ -113,6 +124,7 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
               <StatusTag status={task.status} />
               <DueDateTag dueDate={task.dueDate} />
             </div>
+            <AssigneeTag task={task} />
           </div>
         </Card>
       </div>
