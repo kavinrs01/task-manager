@@ -32,7 +32,7 @@ const DroppableColumn: React.FC<{
 
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const TAKE = 3;
+  const TAKE = 10;
   const [isFetching, setIsFetching] = useState(false);
   const { addTasks } = useTasks();
 

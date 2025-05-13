@@ -59,7 +59,7 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
       className="!mb-3 rounded-md relative overflow-hidden flex flex-col gap-2 shadow-md cursor-grab"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
-      onClick={toggleActions}
+      onTouchEnd={toggleActions}
     >
       {/* Drag & Action Overlay */}
       {showActions && (

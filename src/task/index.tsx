@@ -47,7 +47,7 @@ const TaskBoardView: React.FC = React.memo(() => {
   const { tasks, updateTask, setFilter, setTasks, filter } = useTasks();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [loadingColumn, setLoadingColumn] = useState<TaskStatus>();
-  const [hideFilter, setHideFilter] = useState(false);
+  const [hideFilter, setHideFilter] = useState(true);
   const { loading, runAsync } = useRequest(updateSortOderQuery, {
     manual: true,
   });
