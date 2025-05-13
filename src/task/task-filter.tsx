@@ -1,15 +1,14 @@
 import { DatePicker, Select, Space, Typography } from "antd";
 import dayjs from "dayjs";
-import { capitalize } from "lodash";
 import React from "react";
-import { FilterInput, TaskPriority } from "../utils/types";
 import { PriorityTag } from "../utils/components";
+import { TaskFilterDto, TaskPriority } from "../utils/types";
 
 const { Text } = Typography;
 
 type Props = {
-  onFilterChange: (filter: FilterInput) => void;
-  previousFilter: FilterInput;
+  onFilterChange: (filter: TaskFilterDto) => void;
+  previousFilter: TaskFilterDto;
 };
 
 const TaskFilter: React.FC<Props> = React.memo(

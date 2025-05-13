@@ -6,7 +6,7 @@ import {
   setRefreshToken,
 } from "./auth/tokenService";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://task-manager-server-527317394743.us-central1.run.app";
 
 const api = axios.create({
   baseURL: BASE_URL,

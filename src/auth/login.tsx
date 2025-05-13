@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { currentUserActions, useAppDispatch } from "../store";
 import { loginQuery } from "./query";
 
-const { Title, Text, Link } = Typography;
+const { Title, Text } = Typography;
 
 interface LoginFormValues {
   email?: string;
