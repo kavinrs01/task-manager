@@ -11,6 +11,8 @@ import { deleteTaskQuery } from "./query";
 
 interface DeleteTaskButtonProps {
   task: Task;
+  setDeleteLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  isDeleteLoading?: boolean;
 }
 
 interface EditTaskButtonProps {
@@ -43,7 +45,7 @@ const EditTaskButton: React.FC<EditTaskButtonProps> = React.memo(({ task }) => {
 });
 
 const DeleteTaskButton: React.FC<DeleteTaskButtonProps> = React.memo(
-  ({ task }) => {
+  ({ task, setDeleteLoading, isDeleteLoading: isDeleteLoadingProp }) => {
     const { updateTask, setExpandedTask, setIsExpanded } = useTasks();
     const currentUser = useAppSelector<User | null>(
       (state) => state.currentUser
@@ -54,19 +56,31 @@ const DeleteTaskButton: React.FC<DeleteTaskButtonProps> = React.memo(
     );
 
     const onClickDelete = useCallback(async () => {
-      const deletedTask = await deleteTask(task?.id);
-      if (!deletedTask) return;
-      updateTask(deletedTask);
-      setExpandedTask(null);
-      setIsExpanded(false);
-    }, [deleteTask, setExpandedTask, setIsExpanded, task?.id, updateTask]);
+      if (setDeleteLoading) setDeleteLoading(true);
+      try {
+        const deletedTask = await deleteTask(task?.id);
+        if (!deletedTask) return;
+        updateTask(deletedTask);
+        setExpandedTask(null);
+        setIsExpanded(false);
+      } finally {
+        if (setDeleteLoading) setDeleteLoading(false);
+      }
+    }, [
+      deleteTask,
+      setDeleteLoading,
+      setExpandedTask,
+      setIsExpanded,
+      task?.id,
+      updateTask,
+    ]);
     if (currentUser?.role === Role.USER && !task?.isPrivate) return null;
     return (
       <Button
         variant="solid"
         color="red"
-        loading={isDeleteLoading}
-        disabled={isDeleteLoading}
+        loading={isDeleteLoading || isDeleteLoadingProp}
+        disabled={isDeleteLoading || isDeleteLoadingProp}
         onClick={onClickDelete}
         onTouchEnd={(e) => {
           e.stopPropagation();

@@ -3,7 +3,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button, Card, Typography } from "antd";
 import { motion, MotionStyle } from "motion/react";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   AssigneeTag,
   DueDateTag,
@@ -19,8 +19,8 @@ const { Title, Paragraph, Text } = Typography;
 
 const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
   const { setIsExpanded, setExpandedTask } = useTasks();
-  const [showActions, setShowActions] = React.useState(false);
-
+  const [showActions, setShowActions] = useState(false);
+  const [isDeleteLoading, setDeleteLoading] = useState(false);
   const {
     attributes,
     listeners,
@@ -62,7 +62,7 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
       onTouchEnd={toggleActions}
     >
       {/* Drag & Action Overlay */}
-      {showActions && (
+      {(showActions || isDeleteLoading) && (
         <motion.div
           className="absolute top-0 left-0 w-full h-full flex-col flex items-center justify-center z-10 bg-gray-300/40 border-2 border-gray-50 gap-2"
           style={{ transition: "opacity 0.2s ease-in-out" }}
@@ -75,7 +75,11 @@ const SortableTaskCard: React.FC<{ task: Task }> = React.memo(({ task }) => {
             onPointerDown={(event) => event.stopPropagation()}
             className="flex items-center justify-center p-2 rounded-md bg-white cursor-auto gap-1"
           >
-            <DeleteTaskButton task={task} />
+            <DeleteTaskButton
+              task={task}
+              setDeleteLoading={setDeleteLoading}
+              isDeleteLoading={isDeleteLoading}
+            />
             <EditTaskButton task={task} />
             <Button
               onClick={onClickExpand}
