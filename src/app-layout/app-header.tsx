@@ -10,9 +10,7 @@ import { User } from "../utils/types";
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
-  const currentUser = useAppSelector<User | null>(
-      (state) => state.currentUser
-    );
+  const currentUser = useAppSelector<User | null>((state) => state.currentUser);
   const dispatch = useAppDispatch();
   const handleLogout = async () => {
     removeAccessToken();
@@ -23,16 +21,15 @@ const AppHeader: React.FC = () => {
 
   return (
     <div className="flex flex-row items-center gap-3 w-full px-1 justify-between py-2 flex-wrap">
-      <div className="flex flex-row items-center">
-        <img src="/logo.png" className="w-[100px]"></img>
+      <div className="flex flex-row items-center gap-1 min-w-0">
+        <img src="/logo.png" className="w-[100px]" />
+        <p className="text-white whitespace-nowrap truncate w-full sm:w-[200px] md:w-[300px]">
+          {currentUser?.name + " | " + currentUser?.email}
+        </p>
       </div>
- 
-      <div className="flex flex-row items-center gap-3 flex-wrap">
-        <p className="text-white whitespace-nowrap">{currentUser?.name + " | " + currentUser?.email}</p>
-        <Button type="primary" onClick={handleLogout} icon={<LogoutOutlined />}>
-          Logout
-        </Button>
-      </div>
+      <Button type="primary" onClick={handleLogout} icon={<LogoutOutlined />} className="align-self-end text-left">
+        Logout
+      </Button>
     </div>
   );
 };

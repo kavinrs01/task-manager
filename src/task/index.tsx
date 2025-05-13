@@ -6,6 +6,7 @@ import {
   KeyboardSensor,
   PointerSensor,
   rectIntersection,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -172,6 +173,7 @@ const TaskBoardView: React.FC = React.memo(() => {
     setFilter(filter);
   };
   const sensors = useSensors(
+    useSensor(TouchSensor),
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,

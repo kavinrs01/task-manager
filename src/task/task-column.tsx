@@ -32,7 +32,7 @@ const DroppableColumn: React.FC<{
 
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const TAKE = 10;
+  const TAKE = 3;
   const [isFetching, setIsFetching] = useState(false);
   const { addTasks } = useTasks();
 
@@ -89,8 +89,15 @@ const DroppableColumn: React.FC<{
   ]);
 
   useEffect(() => {
-    fetchData(); // initial fetch
-  }, []);
+    setHasMore(true);
+    setCursor(undefined);
+  }, [filter, status]);
+
+  useEffect(() => {
+    if (cursor === undefined) {
+      fetchData(); // initial fetch
+    }
+  }, [cursor, fetchData]);
 
   const [highlighted, setHighlighted] = useState<boolean>(false);
 

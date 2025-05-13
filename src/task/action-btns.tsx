@@ -33,6 +33,10 @@ const EditTaskButton: React.FC<EditTaskButtonProps> = React.memo(({ task }) => {
       variant="solid"
       color="primary"
       onClick={onClickEdit}
+      onTouchEnd={(e) => {
+        e.stopPropagation();
+        onClickEdit();
+      }}
       icon={<EditOutlined />}
     />
   );
@@ -64,6 +68,10 @@ const DeleteTaskButton: React.FC<DeleteTaskButtonProps> = React.memo(
         loading={isDeleteLoading}
         disabled={isDeleteLoading}
         onClick={onClickDelete}
+        onTouchEnd={(e) => {
+          e.stopPropagation();
+          onClickDelete();
+        }}
         icon={<DeleteOutlined />}
       />
     );
