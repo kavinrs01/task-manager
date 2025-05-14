@@ -18,6 +18,7 @@ import { Badge, Button, Spin, Typography } from "antd";
 import { findIndex, groupBy, last, orderBy, uniqBy } from "lodash";
 import { DateTime } from "luxon";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useFirebaseTaskListener } from "../firebase/useFirebaseTaskListener";
 import { teamMembersActions, useAppDispatch, useAppSelector } from "../store";
 import { Task, TaskFilterDto, TaskStatus, User } from "../utils/types";
 import { getTeamMembersQuery, updateSortOderQuery } from "./query";
@@ -33,6 +34,7 @@ const { Title } = Typography;
 
 const TaskBoardView: React.FC = React.memo(() => {
   const currentUser = useAppSelector<User | null>((state) => state.currentUser);
+  useFirebaseTaskListener();
   const dispatch = useAppDispatch();
   const { data: users = [], loading: isUsersLoading } = useRequest(
     async (): Promise<User[]> =>
